@@ -18,14 +18,14 @@ try {
 // Проверяем, был ли отправлен POST-запрос
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Получаем данные из формы
-    $name = $_POST['field-name-1'];
+    $name = $_POST['name'];
     $phone = $_POST['phone'];
-    $email = $_POST['field-email'];
-    $birthdate = $_POST['field-date'];
-    $gender = $_POST['radio-group-1'];  // Мужской/Женский/Другое
-    $languages = $_POST['field-lang'];  // Массив языков
-    $biography = $_POST['fiel-manytext'];
-    $contract = isset($_POST['check']) ? 1 : 0;
+    $email = $_POST['email'];
+    $birthdate = $_POST['birthdate'];
+    $gender = $_POST['gender'];  // Мужской/Женский/Другое
+    $languages = $_POST['languages'];  // Массив языков
+    $biography = $_POST['biography'];
+    $contract = isset($_POST['contract_accepted']) ? 1 : 0;
 
     // Валидация данных (пример для ФИО)
     if (!preg_match("/^[a-zA-Zа-яА-ЯёЁ\s]+$/u", $name)) {
