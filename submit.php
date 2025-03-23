@@ -4,14 +4,16 @@ header("Content-Type: text/html; charset=UTF-8");
 $host = 'localhost';
 $dbname = 'u68684';
 $user = 'u68684';
-$pass = '1432781';
+$password = '1432781'; // Здесь должен быть твой пароль
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Включаем обработку ошибок
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC // Устанавливаем режим выборки
     ]);
+    echo "✅ Подключение к базе успешно!";
 } catch (PDOException $e) {
-    die("Ошибка подключения к БД: " . $e->getMessage());
+    die("❌ Ошибка подключения к БД: " . $e->getMessage());
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
