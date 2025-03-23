@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $birthdate = $_POST['birthdate'];
     $gender = $_POST['gender'];  // Мужской/Женский/Другое
     $languages = $_POST['languages'];  // Массив языков
-    $biography = $_POST['biography'];
+    $biography = $_POST['bio'];
     $contract = isset($_POST['contract_accepted']) ? 1 : 0;
 
     // Валидация данных (пример для ФИО)
@@ -46,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Вставляем заявку в таблицу application
     try {
-        $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, birthdate, gender, biography, contract) 
-                               VALUES (:name, :phone, :email, :birthdate, :gender, :biography, :contract)");
+        $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, birthdate, gender, bio, contract_accepted) 
+                               VALUES (:name, :phone, :email, :birthdate, :gender, :bio, :contract_accepted)");
         $stmt->execute([
             'name' => $name,
             'phone' => $phone,
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'birthdate' => $birthdate,
             'gender' => $gender,
             'biography' => $biography,
-            'contract' => $contract
+            'contract_accepted' => $contract_accepted
         ]);
 
         // Получаем ID последней вставленной заявки
