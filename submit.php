@@ -7,10 +7,6 @@ $user = 'u68684';
 $password = '1432781'; // Здесь должен быть твой пароль
 
 try {
-    $checkTable = $pdo->query("SHOW TABLES LIKE 'application'");
-if ($checkTable->rowCount() == 0) {
-    die("❌ Ошибка: Таблица 'application' не найдена! Проверьте, создали ли вы её.");
-}
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Включаем обработку ошибок
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC // Устанавливаем режим выборки
