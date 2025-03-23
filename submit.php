@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $gender = $_POST['gender'];  // Мужской/Женский/Другое
     $languages = $_POST['languages'];  // Массив языков
     $biography = $_POST['bio'];
-    $contract = isset($_POST['contract_accepted']) ? 1 : 0;
+    $contract_accepted = isset($_POST['contract_accepted']) ? 1 : 0;
 
     // Валидация данных (пример для ФИО)
     if (!preg_match("/^[a-zA-Zа-яА-ЯёЁ\s]+$/u", $name)) {
