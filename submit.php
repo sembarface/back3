@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
     $birthdate = $_POST['dob'];
     $gender = $_POST['gender'];
-    $bio = trim($_POST['bio']);
+    $biography = trim($_POST['bio']);
     $contract = isset($_POST['contract']) ? 1 : 0;
     $languages = isset($_POST['languages']) ? $_POST['languages'] : [];
 
@@ -38,9 +38,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Вставка данных в таблицу application
-    $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, birthdate, gender, bio, contract) 
+    $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, birthdate, gender, biography, contract) 
                            VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$name, $phone, $email, $birthdate, $gender, $bio, $contract]);
+    $stmt->execute([$name, $phone, $email, $birthdate, $gender, $biography, $contract]);
 
     // Получаем ID последней вставленной записи
     $application_id = $pdo->lastInsertId();
