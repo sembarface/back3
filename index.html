@@ -153,63 +153,70 @@
         </div>
 
         <div class="forma m-2 p-2 m-md-3" id="forma">
-            <h1>Форма</h1>
-            <form action="submit.php" method="POST">
-                <label for="field-name-1">
-                    ФИО:<br>
-                    <input id="field-name-1" name="field-name-1" placeholder="Иванов Иван Иванович" required>
-                </label><br>
-                <label for="phone">
-                    Телефон:<br>
-                    <input id="phone" type="tel" name="phone" placeholder="+7 (918) 123-45-67" required>
-                </label><br>
-                <label for="field-email">
-                    Электронная почта:<br>
-                    <input id="field-email" name="field-email" type="email" placeholder="ogurec@example.com" required>
-                </label><br>
-                <label for="field-date">
-                    Дата рождения:<br>
-                    <input id="field-date" name="field-date" type="date" required>
-                </label><br>
+    <h1>Форма</h1>
+    <form action="submit.php" method="POST">
+        <label for="name">
+            ФИО:<br>
+            <input id="name" name="name" placeholder="Иванов Иван Иванович" required>
+        </label><br>
+        
+        <label for="phone">
+            Телефон:<br>
+            <input id="phone" type="tel" name="phone" placeholder="+7 (918) 123-45-67" required>
+        </label><br>
+        
+        <label for="email">
+            Электронная почта:<br>
+            <input id="email" name="email" type="email" placeholder="ogurec@example.com" required>
+        </label><br>
+        
+        <label for="dob">
+            Дата рождения:<br>
+            <input id="dob" name="dob" type="date" required>
+        </label><br>
 
-                    Выберите пол:<br>
-                    <label for="male">
-                        <input id="male" type="radio" name="radio-group-1" value="Мужской" required> Мужской
-                    </label><br>
-                    <label for="female">
-                        <input id="female" type="radio" name="radio-group-1" value="Женский"> Женский
-                    </label><br>
-                    <label for="other">
-                        <input id="other" type="radio" name="radio-group-1" value="Другое"> Другое)))
-                    </label><br>
-                <label for="field-lang">
-                    Любимый язык программирования:<br>
-                    <select id="field-lang" name="field-lang" required>
-                        <option value="" disabled selected>Выберите язык</option>
-                        <option value="Pascal">Pascal</option>
-                        <option value="C">C</option>
-                        <option value="C++">C++</option>
-                        <option value="JavaScript">JavaScript</option>
-                        <option value="PHP">PHP</option>
-                        <option value="Python">Python</option>
-                        <option value="Java">Java</option>
-                        <option value="Haskell">Haskell</option>
-                        <option value="Clojure">Clojure</option>
-                        <option value="Prolog">Prolog</option>
-                        <option value="Scala">Scala</option>
-                    </select>
-                </label><br>
-                <label for="field-manytext">
-                    Биография:<br>
-                    <textarea id="field-manytext" name="fiel-manytext" placeholder="Ваша биография" required></textarea>
-                </label><br>
-                <label for="check">
-                    <input id="check" type="checkbox" name="check" required>
-                    С контрактом ознакомлен(а)
-                </label><br>
-                <input type="submit" name="save" value="Сохранить">
-            </form>
-        </div>
+        Выберите пол:<br>
+        <label for="male">
+            <input id="male" type="radio" name="gender" value="male" required> Мужской
+        </label><br>
+        <label for="female">
+            <input id="female" type="radio" name="gender" value="female"> Женский
+        </label><br>
+        <label for="other">
+            <input id="other" type="radio" name="gender" value="other"> Другое)))
+        </label><br>
+
+        <label for="languages">
+            Любимый язык программирования:<br>
+            <select id="languages" name="languages[]" multiple required>
+                <option value="Pascal">Pascal</option>
+                <option value="C">C</option>
+                <option value="C++">C++</option>
+                <option value="JavaScript">JavaScript</option>
+                <option value="PHP">PHP</option>
+                <option value="Python">Python</option>
+                <option value="Java">Java</option>
+                <option value="Haskell">Haskell</option>
+                <option value="Clojure">Clojure</option>
+                <option value="Prolog">Prolog</option>
+                <option value="Scala">Scala</option>
+            </select>
+        </label><br>
+
+        <label for="bio">
+            Биография:<br>
+            <textarea id="bio" name="bio" placeholder="Ваша биография" required></textarea>
+        </label><br>
+
+        <label for="contract">
+            <input id="contract" type="checkbox" name="contract" required>
+            С контрактом ознакомлен(а)
+        </label><br>
+
+        <input type="submit" name="save" value="Сохранить">
+    </form>
+</div>
+
 
         <h1 id="important">МЕНЯ ЗОВУТ ВОЛОДЯ</h1>
     </div>
