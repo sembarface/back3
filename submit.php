@@ -6,12 +6,6 @@ $dbname = 'u68684';
 $user = 'u68684';
 $pass = '1432781';
 
-<?php
-$host = 'localhost';
-$dbname = '68684'; // Название базы данных
-$user = '68684';  // Логин
-$password = 'ТВОЙ_ПАРОЛЬ';
-
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
