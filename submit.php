@@ -1,57 +1,79 @@
 <?php
-header("Content-Type: text/html; charset=UTF-8");
-
+// Устанавливаем соединение с базой данных
 $host = 'localhost';
-$dbname = 'u68684';
-$user = 'u68684';
-$password = '1432781'; // Здесь должен быть твой пароль
+$dbname = 'u68684';  // Замени на имя своей базы данных
+$username = 'u68684'; // Замени на твое имя пользователя
+$password = '1432781'; // Замени на твой пароль
+$dsn = "mysql:host=$host;dbname=$dbname;charset=utf8";
 
+// Пытаемся подключиться к базе данных
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Включаем обработку ошибок
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC // Устанавливаем режим выборки
-    ]);
-    echo "✅ Подключение к базе успешно!";
+    $pdo = new PDO($dsn, $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    die("❌ Ошибка подключения к БД: " . $e->getMessage());
+    echo "Ошибка подключения к БД: " . $e->getMessage();
+    exit;
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = trim($_POST['name']);
-    $phone = trim($_POST['phone']);
-    $email = trim($_POST['email']);
-    $birthdate = $_POST['dob'];
-    $gender = $_POST['gender'];
-    $biography = trim($_POST['bio']);
-    $contract_accepted = isset($_POST['contract']) ? 1 : 0;
-    $languages = isset($_POST['languages']) ? $_POST['languages'] : [];
+// Проверяем, был ли отправлен POST-запрос
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Получаем данные из формы
+    $name = $_POST['field-name-1'];
+    $phone = $_POST['phone'];
+    $email = $_POST['field-email'];
+    $birthdate = $_POST['field-date'];
+    $gender = $_POST['radio-group-1'];  // Мужской/Женский/Другое
+    $languages = $_POST['field-lang'];  // Массив языков
+    $biography = $_POST['fiel-manytext'];
+    $contract = isset($_POST['check']) ? 1 : 0;
 
-    // Валидация данных
-    if (!preg_match("/^[a-zA-Zа-яА-ЯёЁ\s-]{1,150}$/u", $name)) {
-        die("Ошибка: Некорректное имя.");
-    }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        die("Ошибка: Некорректный email.");
-    }
-    if (!preg_match("/^\+?[0-9]{7,15}$/", $phone)) {
-        die("Ошибка: Некорректный телефон.");
+    // Валидация данных (пример для ФИО)
+    if (!preg_match("/^[a-zA-Zа-яА-ЯёЁ\s]+$/u", $name)) {
+        echo "Ошибка: Неверное ФИО.";
+        exit;
     }
 
-    // Вставка данных в таблицу application
-    $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, birthdate, gender, biography, contract_accepted) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$name, $phone, $email, $birthdate, $gender, $biography, $contract_accepted]);
-
-    // Получаем ID последней вставленной записи
-    $application_id = $pdo->lastInsertId();
-
-    // Вставка данных в таблицу связей application_languages
-    $stmt = $pdo->prepare("INSERT INTO application_languages (application_id, language_id) VALUES (?, ?)");
+    // Получаем ID выбранного языка (например, 'C++')
+    $language_id = [];
     foreach ($languages as $language) {
-        $stmt->execute([$application_id, $language]);
+        $stmt = $pdo->prepare("SELECT id FROM languages WHERE name = :name");
+        $stmt->execute(['name' => $language]);
+        $id = $stmt->fetchColumn();
+        if ($id) {
+            $language_id[] = $id; // Собираем ID выбранных языков
+        }
     }
 
-    echo "Данные успешно сохранены!";
-    
+    // Вставляем заявку в таблицу application
+    try {
+        $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, birthdate, gender, biography, contract) 
+                               VALUES (:name, :phone, :email, :birthdate, :gender, :biography, :contract)");
+        $stmt->execute([
+            'name' => $name,
+            'phone' => $phone,
+            'email' => $email,
+            'birthdate' => $birthdate,
+            'gender' => $gender,
+            'biography' => $biography,
+            'contract' => $contract
+        ]);
+
+        // Получаем ID последней вставленной заявки
+        $application_id = $pdo->lastInsertId();
+
+        // Вставляем языки программирования в таблицу связей
+        foreach ($language_id as $lang_id) {
+            $stmt = $pdo->prepare("INSERT INTO application_languages (application_id, language_id) 
+                                   VALUES (:application_id, :language_id)");
+            $stmt->execute([
+                'application_id' => $application_id,
+                'language_id' => $lang_id
+            ]);
+        }
+
+        echo "Данные успешно сохранены!";
+    } catch (PDOException $e) {
+        echo "Ошибка при вставке данных: " . $e->getMessage();
+    }
 }
 ?>
