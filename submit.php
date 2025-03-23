@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'email' => $email,
             'birthdate' => $birthdate,
             'gender' => $gender,
-            'bio' => $biography,
+            'biography' => $biography,
             'contract_accepted' => $contract_accepted
         ]);
 
