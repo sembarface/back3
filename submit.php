@@ -6,65 +6,55 @@ $dbname = 'u68684';
 $user = 'u68684';
 $pass = '1432781';
 
+<?php
+$host = 'localhost';
+$dbname = '68684'; // Название базы данных
+$user = '68684';  // Логин
+$password = 'ТВОЙ_ПАРОЛЬ';
+
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
 } catch (PDOException $e) {
-    die("Ошибка подключения к базе данных: " . $e->getMessage());
+    die("Ошибка подключения к БД: " . $e->getMessage());
 }
 
-// 🚀 Валидация данных
-$errors = [];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = trim($_POST['name']);
+    $phone = trim($_POST['phone']);
+    $email = trim($_POST['email']);
+    $dob = $_POST['dob'];
+    $gender = $_POST['gender'];
+    $bio = trim($_POST['bio']);
+    $contract = isset($_POST['contract']) ? 1 : 0;
+    $languages = isset($_POST['languages']) ? $_POST['languages'] : [];
 
-if (!preg_match('/^[a-zA-Zа-яА-ЯёЁ\s-]{1,150}$/u', $_POST['name'])) {
-    $errors[] = "ФИО должно содержать только буквы, пробелы и дефисы (макс. 150 символов).";
-}
-
-if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-    $errors[] = "Некорректный e-mail.";
-}
-
-if (!preg_match('/^\+?[0-9]{7,20}$/', $_POST['phone'])) {
-    $errors[] = "Некорректный номер телефона.";
-}
-
-if (!in_array($_POST['gender'], ['male', 'female'])) {
-    $errors[] = "Некорректный пол.";
-}
-
-if (!isset($_POST['contract'])) {
-    $errors[] = "Необходимо согласие с контрактом.";
-}
-
-if (empty($_POST['languages'])) {
-    $errors[] = "Выберите хотя бы один язык программирования.";
-}
-
-// Остановка, если есть ошибки
-if (!empty($errors)) {
-    echo "<b>Ошибки:</b><br>" . implode("<br>", $errors);
-    exit;
-}
-
-// 🚀 Запись в БД
-try {
-    $stmt = $pdo->prepare("INSERT INTO applications (name, phone, email, birthdate, gender, bio, contract_accepted) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([
-        $_POST['name'], $_POST['phone'], $_POST['email'], $_POST['birthdate'], $_POST['gender'], $_POST['bio'], 1
-    ]);
-
-    $applicationId = $pdo->lastInsertId();
-
-    // Запись выбранных языков
-    $stmt = $pdo->prepare("INSERT INTO application_languages (application_id, language_id) VALUES (?, ?)");
-    foreach ($_POST['languages'] as $lang) {
-        $stmt->execute([$applicationId, $lang]);
+    // Валидация данных
+    if (!preg_match("/^[a-zA-Zа-яА-ЯёЁ\s-]{1,150}$/u", $name)) {
+        die("Ошибка: Некорректное имя.");
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        die("Ошибка: Некорректный email.");
+    }
+    if (!preg_match("/^\+?[0-9]{7,15}$/", $phone)) {
+        die("Ошибка: Некорректный телефон.");
     }
 
-    echo "✅ Данные успешно сохранены!";
-} catch (PDOException $e) {
-    die("Ошибка записи: " . $e->getMessage());
+    // Вставка данных в таблицу application
+    $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, dob, gender, bio, contract) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$name, $phone, $email, $dob, $gender, $bio, $contract]);
+
+    // Получаем ID последней вставленной записи
+    $application_id = $pdo->lastInsertId();
+
+    // Вставка данных в таблицу связей application_languages
+    $stmt = $pdo->prepare("INSERT INTO application_languages (application_id, language_id) VALUES (?, ?)");
+    foreach ($languages as $language) {
+        $stmt->execute([$application_id, $language]);
+    }
+
+    echo "Данные успешно сохранены!";
 }
 ?>
