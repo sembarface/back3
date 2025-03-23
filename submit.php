@@ -46,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Вставляем заявку в таблицу application
     try {
-        $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, birthdate, gender, bio, contract_accepted) 
-                               VALUES (:name, :phone, :email, :birthdate, :gender, :bio, :contract_accepted)");
+        $stmt = $pdo->prepare("INSERT INTO application (name, phone, email, birthdate, gender, biography, contract_accepted) 
+                               VALUES (:name, :phone, :email, :birthdate, :gender, :biography, :contract_accepted)");
         $stmt->execute([
             'name' => $name,
             'phone' => $phone,
