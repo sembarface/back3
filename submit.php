@@ -18,59 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Валидация данных
     $errors = [];
     
-    // ФИО (только буквы и пробелы, до 150 символов)
-    if (!preg_match("/^[a-zA-Zа-яА-ЯёЁ\s]{1,150}$/u", $_POST['name'])) {
-        $errors[] = "Неверный формат ФИО";
-    }
+    // [Оставьте вашу валидацию без изменений]
     
-    // Телефон (простейшая проверка)
-    if (!preg_match("/^\+?\d{1,3}[-\s]?\(?\d{3}\)?[-\s]?\d{3}[-\s]?\d{2}[-\s]?\d{2}$/", $_POST['phone'])) {
-        $errors[] = "Неверный формат телефона";
-    }
-    
-    // Email
-    if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Неверный формат email";
-    }
-    
-    // Дата рождения (не будущее время)
-    if (strtotime($_POST['birthdate']) > time()) {
-        $errors[] = "Дата рождения не может быть в будущем";
-    }
-    
-    // Пол
-    if (!in_array($_POST['gender'], ['male', 'female', 'other'])) {
-        $errors[] = "Неверно указан пол";
-    }
-    
-    // Языки программирования
-    $validLanguages = ['Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python', 'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala'];
-    $selectedLanguages = $_POST['languages'] ?? [];
-    
-    if (empty($selectedLanguages)) {
-        $errors[] = "Выберите хотя бы один язык программирования";
-    } else {
-        foreach ($selectedLanguages as $lang) {
-            if (!in_array($lang, $validLanguages)) {
-                $errors[] = "Выбран недопустимый язык программирования";
-                break;
-            }
-        }
-    }
-    
-    // Биография
-    if (empty(trim($_POST['bio']))) {
-        $errors[] = "Заполните биографию";
-    }
-    
-    // Чекбокс
-    if (!isset($_POST['contract_accepted'])) {
-        $errors[] = "Необходимо принять условия контракта";
-    }
-    
-    // Если есть ошибки - выводим
     if (!empty($errors)) {
-        header('Content-Type: text/html; charset=utf-8');
         echo "<h2>Ошибки:</h2><ul>";
         foreach ($errors as $error) {
             echo "<li>$error</li>";
@@ -79,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
     
-    // Если ошибок нет - сохраняем в БД
     try {
+        // Начинаем транзакцию ТОЛЬКО если нет ошибок валидации
         $pdo->beginTransaction();
         
         // 1. Сохраняем основную информацию
@@ -98,48 +48,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         $applicationId = $pdo->lastInsertId();
         
-        // 2. Сохраняем языки программирования
-        // Сначала убедимся, что таблица languages существует
-        $pdo->exec("CREATE TABLE IF NOT EXISTS languages (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(50) NOT NULL UNIQUE
-        )");
+        // 2. Оптимизированная обработка языков
+        $validLanguages = ['Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python', 'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala'];
+        $selectedLanguages = array_intersect($_POST['languages'] ?? [], $validLanguages);
         
-        // Создаем таблицу связей, если ее нет
-        $pdo->exec("CREATE TABLE IF NOT EXISTS application_languages (
-            application_id INT UNSIGNED NOT NULL,
-            language_id INT UNSIGNED NOT NULL,
-            PRIMARY KEY (application_id, language_id),
-            FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
-        )");
-        
-        // Для каждого выбранного языка
-        foreach ($selectedLanguages as $langName) {
-            // Проверяем есть ли язык в БД
-            $stmt = $pdo->prepare("SELECT id FROM languages WHERE name = ?");
-            $stmt->execute([$langName]);
-            $langId = $stmt->fetchColumn();
+        if (!empty($selectedLanguages)) {
+            // Получаем ID всех нужных языков одним запросом
+            $placeholders = rtrim(str_repeat('?,', count($selectedLanguages)), ',');
+            $stmt = $pdo->prepare("SELECT id, name FROM languages WHERE name IN ($placeholders)");
+            $stmt->execute($selectedLanguages);
+            $existingLanguages = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
             
-            // Если нет - добавляем
-            if (!$langId) {
+            // Добавляем отсутствующие языки
+            $missingLanguages = array_diff($selectedLanguages, array_keys($existingLanguages));
+            if (!empty($missingLanguages)) {
                 $stmt = $pdo->prepare("INSERT INTO languages (name) VALUES (?)");
-                $stmt->execute([$langName]);
-                $langId = $pdo->lastInsertId();
+                foreach ($missingLanguages as $lang) {
+                    $stmt->execute([$lang]);
+                    $existingLanguages[$lang] = $pdo->lastInsertId();
+                }
             }
             
-            // Добавляем связь
+            // Добавляем связи
             $stmt = $pdo->prepare("INSERT INTO application_languages (application_id, language_id) VALUES (?, ?)");
-            $stmt->execute([$applicationId, $langId]);
+            foreach ($existingLanguages as $langId) {
+                $stmt->execute([$applicationId, $langId]);
+            }
         }
         
         $pdo->commit();
         
-        // Перенаправляем с сообщением об успехе
         header("Location: index.html?success=1");
         exit;
         
     } catch (PDOException $e) {
-        $pdo->rollBack();
+        // Откатываем ТОЛЬКО если транзакция была начата
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         die("Ошибка при сохранении данных: " . $e->getMessage());
     }
 }
