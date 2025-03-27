@@ -49,32 +49,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $applicationId = $pdo->lastInsertId();
         
         // 2. Оптимизированная обработка языков
-        $validLanguages = ['Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python', 'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala'];
-        $selectedLanguages = array_intersect($_POST['languages'] ?? [], $validLanguages);
-        
-        if (!empty($selectedLanguages)) {
-            // Получаем ID всех нужных языков одним запросом
-            $placeholders = rtrim(str_repeat('?,', count($selectedLanguages)), ',');
-            $stmt = $pdo->prepare("SELECT id, name FROM languages WHERE name IN ($placeholders)");
-            $stmt->execute($selectedLanguages);
-            $existingLanguages = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-            
-            // Добавляем отсутствующие языки
-            $missingLanguages = array_diff($selectedLanguages, array_keys($existingLanguages));
-            if (!empty($missingLanguages)) {
-                $stmt = $pdo->prepare("INSERT INTO languages (name) VALUES (?)");
-                foreach ($missingLanguages as $lang) {
-                    $stmt->execute([$lang]);
-                    $existingLanguages[$lang] = $pdo->lastInsertId();
-                }
-            }
-            
-            // Добавляем связи
-            $stmt = $pdo->prepare("INSERT INTO application_languages (application_id, language_id) VALUES (?, ?)");
-            foreach ($existingLanguages as $langId) {
-                $stmt->execute([$applicationId, $langId]);
+        // Оптимизированная обработка языков
+$validLanguages = ['Pascal', 'C', 'C++', 'JavaScript', 'PHP', 'Python', 'Java', 'Haskell', 'Clojure', 'Prolog', 'Scala'];
+$selectedLanguages = array_intersect($_POST['languages'] ?? [], $validLanguages);
+
+if (!empty($selectedLanguages)) {
+    // 1. Получаем существующие языки
+    $placeholders = rtrim(str_repeat('?,', count($selectedLanguages)), ',');
+    $stmt = $pdo->prepare("SELECT id, name FROM languages WHERE name IN ($placeholders)");
+    $stmt->execute($selectedLanguages);
+    $existingLanguages = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // ['C' => 2, 'Python' => 5]
+    
+    // 2. Находим отсутствующие языки
+    $missingLanguages = array_diff($selectedLanguages, array_keys($existingLanguages));
+    
+    // 3. Добавляем только отсутствующие языки (с обработкой возможных ошибок)
+    if (!empty($missingLanguages)) {
+        $stmt = $pdo->prepare("INSERT IGNORE INTO languages (name) VALUES (?)");
+        foreach ($missingLanguages as $lang) {
+            $stmt->execute([$lang]);
+            // Получаем ID добавленного языка
+            if ($stmt->rowCount() > 0) {
+                $existingLanguages[$lang] = $pdo->lastInsertId();
+            } else {
+                // Если язык не добавился (уже существует), получаем его ID
+                $stmtSelect = $pdo->prepare("SELECT id FROM languages WHERE name = ?");
+                $stmtSelect->execute([$lang]);
+                $existingLanguages[$lang] = $stmtSelect->fetchColumn();
             }
         }
+    }
+    
+    // 4. Добавляем связи с заявкой
+    $stmt = $pdo->prepare("INSERT IGNORE INTO application_languages (application_id, language_id) VALUES (?, ?)");
+    foreach ($existingLanguages as $langId) {
+        $stmt->execute([$applicationId, $langId]);
+    }
+}
         
         $pdo->commit();
         
