@@ -22,3 +22,7 @@ CREATE TABLE IF NOT EXISTS application_languages (
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
     FOREIGN KEY (language_id) REFERENCES languages(id)
 );
+INSERT IGNORE INTO languages (name) VALUES 
+('Pascal'), ('C'), ('C++'), ('JavaScript'), ('PHP'),
+('Python'), ('Java'), ('Haskell'), ('Clojure'), 
+('Prolog'), ('Scala');
