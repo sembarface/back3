@@ -1,11 +1,11 @@
 CREATE TABLE applications (
     id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    full_name VARCHAR(150) NOT NULL,
+    name VARCHAR(150) NOT NULL,
     phone VARCHAR(15) NOT NULL,
     email VARCHAR(100) NOT NULL,
     birthdate DATE NOT NULL,
     gender ENUM('male', 'female', 'other') NOT NULL,
-    biography TEXT NOT NULL,
+    bio TEXT NOT NULL,
     agreement TINYINT(1) NOT NULL,
     PRIMARY KEY (id)
 );
